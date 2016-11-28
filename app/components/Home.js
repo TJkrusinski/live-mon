@@ -5,6 +5,7 @@ import { push } from 'react-router-redux';
 import { Link } from 'react-router';
 import styles from './Home.css';
 import * as FormActions from '../actions/form';
+import * as ServerActions from '../actions/server';
 
 let Home = ({dispatch, formState}) => {
   let input;
@@ -12,23 +13,43 @@ let Home = ({dispatch, formState}) => {
   let submit = (e) => {
     e.preventDefault();
     let value = input.value.trim();
+    let type = urlType(value);
+
+    console.log(type);
 
     if (!value) return dispatch(FormActions.invalidURL(value, 'No URL provided'));
     if (!isURL(value)) return dispatch(FormActions.invalidURL(value, 'Provided URL is invalid'));
-    
-    dispatch(FormActions.submitURL(input.value));
-    dispatch(push('/monitor')); 
+
+    dispatch(FormActions.submitURL(value));
+    dispatch(ServerActions.addServer(value));
+
+    if (type.hls) dispatch(ServerActions.isHLS());
+    if (type.rtmp) dispatch(ServerActions.isRTMP());
+
+    dispatch(push('/monitor'));
   };
 
-  // TODO: write this to actually check the URL
   let isURL = (url) => {
-    return url ? true : false;
+    var type = urlType(url);
+    return type.hls || type.rtmp;
   };
+
+  let urlType = (url) => {
+    var type = {
+      hls: false,
+      rtmp: false
+    };
+
+    if (url.match(/^rtmp\:/)) type.rtmp = true;
+    if (url.match(/^http\:/)) type.hls = true;
+
+    return type;
+  }
 
   let errorText = () => {
     if (formState && formState.invalid && formState.reason) return (
       <p>{formState.reason}</p>
-    );   
+    );
   }
 
   return (
