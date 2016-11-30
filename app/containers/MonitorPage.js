@@ -25,7 +25,6 @@ class MonitorPage extends Component {
 
   loadPlayer() {
     var server = this.props.server;
-    console.log(this.props.server);
     if (this.props.server.hls) return <HLS server={server} />;
     if (this.props.server.rtmp) return <RTMP server={server} />;
   }
